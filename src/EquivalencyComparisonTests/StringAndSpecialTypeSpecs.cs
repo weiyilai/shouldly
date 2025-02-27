@@ -66,10 +66,10 @@ public class SpecialTypeSpecs
         var actual = new TypeHolder { Type = typeof(string) };
         var expected = new TypeHolder { Type = typeof(int) };
 
-        Compare.Run(actual, expected).ShouldDiverge(
-            shouldly: Outcome.Error,
-            fluentAssertions: Outcome.Fail,
-            because: "Shouldly walks System.Type's reflection properties and blows up on members like DeclaringMethod (shouldly#1050); FluentAssertions compares Type as a value");
+        // Since shouldly#1094 the member is walked as its declared type System.Type, which no
+        // longer blows up (shouldly#1050) but still compares Type's properties rather than
+        // treating it as a leaf value the way FluentAssertions does.
+        Compare.Run(actual, expected).ShouldAgree(Outcome.Fail);
     }
 
     [Fact]

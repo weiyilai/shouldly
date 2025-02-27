@@ -15,10 +15,9 @@ public class InheritanceSpecs
         var actual = new PetOwner { Pet = new Dog { Name = "Rex", Breed = "Lab" } };
         var expected = new PetOwner { Pet = new Dog { Name = "Rex", Breed = "Poodle" } };
 
-        Compare.Run(actual, expected).ShouldDiverge(
-            shouldly: Outcome.Fail,
-            fluentAssertions: Outcome.Pass,
-            because: "the Pet member is declared as Animal, so FluentAssertions only compares Animal's members; Shouldly reflects over the runtime type Dog and sees the differing Breed");
+        // Since shouldly#1094, Shouldly selects members from the declared type Animal like
+        // FluentAssertions, so the derived-only Breed member is not compared.
+        Compare.Run(actual, expected).ShouldAgree(Outcome.Pass);
     }
 
     [Fact]

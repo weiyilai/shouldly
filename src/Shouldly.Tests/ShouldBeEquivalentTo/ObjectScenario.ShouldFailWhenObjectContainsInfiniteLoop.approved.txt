@@ -1,7 +1,7 @@
 Comparing object equivalence, at path:
 subject [Shouldly.Tests.ShouldBeEquivalentTo.FakeObject]
     Child [Shouldly.Tests.ShouldBeEquivalentTo.FakeObject]
-        Adjectives [System.String[]]
+        Adjectives [System.Collections.IEnumerable]
             Element [1] [System.String]
 
     Expected value to be
