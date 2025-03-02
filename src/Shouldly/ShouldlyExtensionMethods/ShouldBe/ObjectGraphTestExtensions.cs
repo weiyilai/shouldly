@@ -25,6 +25,21 @@ public static partial class ObjectGraphTestExtensions
         CompareObjects(actual, expected, null, new List<string>(), new Dictionary<object, IList<object?>>(), customMessage, actualExpression: actualExpression);
     }
 
+    /// <summary>
+    /// Asserts that an object is equivalent to another object by comparing all properties and fields,
+    /// using the supplied <paramref name="options"/> to customize the comparison.
+    /// </summary>
+    [RequiresUnreferencedCode("Walks the actual/expected object graph using reflection over each runtime type's public fields and properties. The trimmer cannot statically determine which members are read.")]
+    public static void ShouldBeEquivalentTo(
+        [NotNullIfNotNull(nameof(expected))] this object? actual,
+        [NotNullIfNotNull(nameof(actual))] object? expected,
+        EquivalencyOptions options,
+        string? customMessage = null,
+        [CallerArgumentExpression(nameof(actual))] string? actualExpression = null)
+    {
+        CompareObjects(actual, expected, null, new List<string>(), new Dictionary<object, IList<object?>>(), customMessage, actualExpression: actualExpression);
+    }
+
     [RequiresUnreferencedCode("Reflects over fields and properties of the runtime type.")]
     private static void CompareObjects(
         [NotNullIfNotNull(nameof(expected))] this object? actual,
