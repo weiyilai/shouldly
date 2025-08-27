@@ -172,6 +172,13 @@ public static partial class Should
         NotThrowInternal(action, customMessage, actualExpression: actualExpression);
 
     /// <summary>
+    /// Verifies that the provided action does not throw an exception of type <typeparamref name="TException"/>.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static void NotThrow<TException>([InstantHandle] Action action, string? customMessage = null) where TException : Exception =>
+        NotThrowInternal<TException>(action, customMessage);
+
+    /// <summary>
     /// Used to differentiate between the extension methods and the static methods
     /// </summary>
     [DebuggerDisableUserUnhandledExceptions]
@@ -187,6 +194,29 @@ public static partial class Should
         catch (Exception ex)
         {
             throw new ShouldAssertException(new ShouldlyThrowMessage(ex.GetType(), exceptionMessage: ex.Message, customMessage, shouldlyMethod, actualExpression).ToString());
+        }
+    }
+
+    /// <summary>
+    /// Verifies that the provided action does not throw an exception of type <typeparamref name="TException"/>.
+    /// </summary>
+    /// <remarks>
+    /// Used to differentiate between the extension methods and the static methods
+    /// </remarks>
+    internal static void NotThrowInternal<TException>([InstantHandle] Action action, string? customMessage,
+        [CallerMemberName] string shouldlyMethod = null!)
+        where TException : Exception
+    {
+        try
+        {
+            action();
+        }
+        catch (TException ex){
+            throw new ShouldAssertException(new ShouldlyThrowMessage(ex.GetType(), ex.Message, customMessage, shouldlyMethod).ToString());
+        }
+        catch (Exception)
+        {
+            // ignored
         }
     }
 }
