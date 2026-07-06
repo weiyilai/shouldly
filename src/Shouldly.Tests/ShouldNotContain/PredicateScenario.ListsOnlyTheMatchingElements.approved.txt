@@ -1,8 +1,9 @@
-```
-millionaires
+values
     should not contain an element satisfying the condition
-(m.Salary < 1000000)
+(i == 2)
     but
-[Homer]
+[2, 2]
     do
-```
+
+Additional Info:
+    Some additional context
