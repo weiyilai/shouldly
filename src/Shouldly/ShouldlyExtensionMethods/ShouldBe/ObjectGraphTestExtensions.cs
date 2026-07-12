@@ -22,7 +22,7 @@ public static partial class ObjectGraphTestExtensions
         string? customMessage = null,
         [CallerArgumentExpression(nameof(actual))] string? actualExpression = null)
     {
-        CompareObjects(actual, expected, null, new List<string>(), new Dictionary<object, IList<object?>>(), customMessage, actualExpression: actualExpression);
+        CompareObjects(actual, expected, null, new List<string>(), new Dictionary<object, IList<object?>>(ReferenceEqualityComparer.Instance), customMessage, actualExpression: actualExpression);
     }
 
     /// <summary>
@@ -37,7 +37,7 @@ public static partial class ObjectGraphTestExtensions
         string? customMessage = null,
         [CallerArgumentExpression(nameof(actual))] string? actualExpression = null)
     {
-        CompareObjects(actual, expected, null, new List<string>(), new Dictionary<object, IList<object?>>(), customMessage, actualExpression: actualExpression);
+        CompareObjects(actual, expected, null, new List<string>(), new Dictionary<object, IList<object?>>(ReferenceEqualityComparer.Instance), customMessage, actualExpression: actualExpression);
     }
 
     [RequiresUnreferencedCode("Reflects over fields and properties of the runtime type.")]
@@ -240,7 +240,7 @@ public static partial class ObjectGraphTestExtensions
 
     private static bool Contains(this IDictionary<object, IList<object?>> comparisons, object actual, object? expected) =>
         comparisons.TryGetValue(actual, out var list)
-        && list.Contains(expected);
+        && list.Any(item => ReferenceEquals(item, expected));
 
     private static void Record(this IDictionary<object, IList<object?>> comparisons, object actual, object? expected)
     {
@@ -252,5 +252,19 @@ public static partial class ObjectGraphTestExtensions
         {
             comparisons.Add(actual, new List<object?>([expected]));
         }
+    }
+
+    /// <summary>
+    /// Visited pairs must be tracked by reference identity: tracking with a type's own
+    /// Equals/GetHashCode lets an earlier comparison of an Equals-equal pair suppress the
+    /// comparison of a later, structurally different pair (a silent false pass).
+    /// </summary>
+    private sealed class ReferenceEqualityComparer : IEqualityComparer<object>
+    {
+        public static readonly ReferenceEqualityComparer Instance = new();
+
+        bool IEqualityComparer<object>.Equals(object? x, object? y) => ReferenceEquals(x, y);
+
+        int IEqualityComparer<object>.GetHashCode(object obj) => RuntimeHelpers.GetHashCode(obj);
     }
 }
