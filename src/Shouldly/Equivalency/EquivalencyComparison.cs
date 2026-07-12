@@ -208,14 +208,18 @@ internal sealed class EquivalencyComparison
             return;
         }
 
-        var unmatched = new List<object?>(actualList);
-        foreach (var expectedElement in expectedList)
+        // Pair expected elements to distinct equivalent actual elements with maximum bipartite
+        // matching, so a complete pairing is found whenever one exists. A greedy first-match can
+        // otherwise orphan an expected element whose only equivalent partner was already claimed.
+        var matchOfExpected = MatchByEquivalence(
+            expectedList.Count,
+            actualList.Count,
+            (e, a) => IsEquivalent(actualList[a], expectedList[e], elementType));
+
+        for (var i = 0; i < expectedList.Count; i++)
         {
-            var matchIndex = unmatched.FindIndex(candidate => IsEquivalent(candidate, expectedElement, elementType));
-            if (matchIndex < 0)
-                AddDifference(EquivalencyDifferenceKind.MissingElement, path, expectedElement, actual);
-            else
-                unmatched.RemoveAt(matchIndex);
+            if (matchOfExpected[i] < 0)
+                AddDifference(EquivalencyDifferenceKind.MissingElement, path, expectedList[i], actual);
         }
     }
 
@@ -229,24 +233,40 @@ internal sealed class EquivalencyComparison
         }
 
         var expectedEntries = shape.GetEntries(expected).ToList();
-        var unmatched = actualShape.GetEntries(actual).ToList();
+        var actualEntries = actualShape.GetEntries(actual).ToList();
 
-        foreach (var expectedEntry in expectedEntries)
+        // Match keys with maximum bipartite matching (see CompareUnordered) so that, when keys are
+        // themselves complex and a key is equivalent to more than one candidate, a greedy pairing
+        // cannot wrongly leave a matchable key unmatched.
+        var matchOfExpected = MatchByEquivalence(
+            expectedEntries.Count,
+            actualEntries.Count,
+            (e, a) => IsEquivalent(actualEntries[a].Key, expectedEntries[e].Key, shape.KeyType));
+
+        var matchedActual = new bool[actualEntries.Count];
+
+        for (var i = 0; i < expectedEntries.Count; i++)
         {
-            var matchIndex = unmatched.FindIndex(candidate => IsEquivalent(candidate.Key, expectedEntry.Key, shape.KeyType));
+            var matchIndex = matchOfExpected[i];
             if (matchIndex < 0)
             {
-                AddDifference(EquivalencyDifferenceKind.MissingKey, path, expectedEntry.Key, actual);
+                AddDifference(EquivalencyDifferenceKind.MissingKey, path, expectedEntries[i].Key, actual);
                 continue;
             }
 
-            var actualEntry = unmatched[matchIndex];
-            unmatched.RemoveAt(matchIndex);
-            CompareNodes(actualEntry.Value, expectedEntry.Value, shape.ValueType, Append(path, $"[{expectedEntry.Key.ToStringAwesomely()}]"));
+            matchedActual[matchIndex] = true;
+            CompareNodes(actualEntries[matchIndex].Value, expectedEntries[i].Value, shape.ValueType, Append(path, $"[{expectedEntries[i].Key.ToStringAwesomely()}]"));
         }
 
-        if (unmatched.Count > 0)
-            AddDifference(EquivalencyDifferenceKind.UnexpectedKeys, path, expected, unmatched.Select(entry => entry.Key).ToList());
+        var unexpectedKeys = new List<object?>();
+        for (var j = 0; j < actualEntries.Count; j++)
+        {
+            if (!matchedActual[j])
+                unexpectedKeys.Add(actualEntries[j].Key);
+        }
+
+        if (unexpectedKeys.Count > 0)
+            AddDifference(EquivalencyDifferenceKind.UnexpectedKeys, path, expected, unexpectedKeys);
     }
 
     /// <summary>Runs a full sub-comparison, discarding differences; used for order-insensitive matching.</summary>
@@ -255,6 +275,96 @@ internal sealed class EquivalencyComparison
         var comparison = new EquivalencyComparison(_shapes, _options);
         comparison.CompareNodes(actual, expected, declaredType, []);
         return comparison._differences.Count == 0;
+    }
+
+    /// <summary>
+    /// Maximum bipartite matching between expected and actual elements, where
+    /// <paramref name="equivalent"/>(e, a) reports whether expected element e is equivalent to
+    /// actual element a. Returns an array indexed by expected element giving its matched actual
+    /// index, or -1 when it cannot be matched.
+    ///
+    /// A greedy first pass resolves the common case (everything matches, or a genuine mismatch)
+    /// without a full N*N equivalence matrix; only the expected elements it leaves unmatched fall
+    /// back to augmenting-path search, which can reshuffle earlier assignments to free a partner.
+    /// Equivalence results are memoized, so no element pair is ever compared twice. This keeps the
+    /// order-insensitive path close to greedy cost on normal inputs while still finding a complete
+    /// matching whenever one exists.
+    /// </summary>
+    private static int[] MatchByEquivalence(int expectedCount, int actualCount, Func<int, int, bool> equivalent)
+    {
+        var cache = new Dictionary<long, bool>();
+        bool CanMatch(int expectedIndex, int actualIndex)
+        {
+            var key = (long)expectedIndex * actualCount + actualIndex;
+            if (!cache.TryGetValue(key, out var result))
+            {
+                result = equivalent(expectedIndex, actualIndex);
+                cache[key] = result;
+            }
+
+            return result;
+        }
+
+        var matchOfActual = new int[actualCount];
+        for (var actualIndex = 0; actualIndex < actualCount; actualIndex++)
+            matchOfActual[actualIndex] = -1;
+
+        // Greedy warm-start: each expected element claims the first still-free equivalent actual.
+        List<int>? unmatchedGreedily = null;
+        for (var expectedIndex = 0; expectedIndex < expectedCount; expectedIndex++)
+        {
+            var matched = false;
+            for (var actualIndex = 0; actualIndex < actualCount; actualIndex++)
+            {
+                if (matchOfActual[actualIndex] < 0 && CanMatch(expectedIndex, actualIndex))
+                {
+                    matchOfActual[actualIndex] = expectedIndex;
+                    matched = true;
+                    break;
+                }
+            }
+
+            if (!matched)
+                (unmatchedGreedily ??= []).Add(expectedIndex);
+        }
+
+        // Only the greedy leftovers can start an augmenting path; already-matched elements stay
+        // matched, so attempting to augment them would never improve the matching.
+        if (unmatchedGreedily != null)
+        {
+            foreach (var expectedIndex in unmatchedGreedily)
+                Augment(expectedIndex, matchOfActual, CanMatch, actualCount, new bool[actualCount]);
+        }
+
+        var matchOfExpected = new int[expectedCount];
+        for (var expectedIndex = 0; expectedIndex < expectedCount; expectedIndex++)
+            matchOfExpected[expectedIndex] = -1;
+
+        for (var actualIndex = 0; actualIndex < actualCount; actualIndex++)
+        {
+            if (matchOfActual[actualIndex] >= 0)
+                matchOfExpected[matchOfActual[actualIndex]] = actualIndex;
+        }
+
+        return matchOfExpected;
+
+        static bool Augment(int expectedIndex, int[] matchOfActual, Func<int, int, bool> canMatch, int actualCount, bool[] seen)
+        {
+            for (var actualIndex = 0; actualIndex < actualCount; actualIndex++)
+            {
+                if (seen[actualIndex] || !canMatch(expectedIndex, actualIndex))
+                    continue;
+
+                seen[actualIndex] = true;
+                if (matchOfActual[actualIndex] < 0 || Augment(matchOfActual[actualIndex], matchOfActual, canMatch, actualCount, seen))
+                {
+                    matchOfActual[actualIndex] = expectedIndex;
+                    return true;
+                }
+            }
+
+            return false;
+        }
     }
 
     private static bool LeafEquals(object actual, object expected)

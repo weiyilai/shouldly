@@ -19,6 +19,17 @@ public class SetScenario
     }
 
     [Fact]
+    public void ShouldPassForLargeSetsInDifferentOrder()
+    {
+        // Exercises the greedy fast path of the order-insensitive matcher: every element matches,
+        // so no augmenting-path fallback is needed even at size.
+        var subject = new HashSet<int>(Enumerable.Range(0, 2000));
+        var expected = new HashSet<int>(Enumerable.Range(0, 2000).Reverse());
+
+        subject.ShouldBeEquivalentTo(expected);
+    }
+
+    [Fact]
     public void ShouldFailWhenSetIsTooShort()
     {
         var subject = new HashSet<int> { 1, 2, 3, 4 };

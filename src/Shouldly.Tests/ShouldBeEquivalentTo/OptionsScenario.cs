@@ -49,6 +49,27 @@ public class OptionsScenario
     }
 
     [Fact]
+    public void ShouldMatchAcrossHeterogeneousElementsWithIgnoreOrder()
+    {
+        // The looser {Id=1} expectation is equivalent to both actual elements, but the stricter
+        // {Id=1,Name="x"} expectation is equivalent to only one of them. A greedy first-match would
+        // let {Id=1} claim that element and then report the stricter expectation as missing;
+        // maximum bipartite matching pairs them so a complete matching is found.
+        var subject = new object[]
+        {
+            new { Id = 1, Name = "x" },
+            new { Id = 1, Name = "y" }
+        };
+        var expected = new object[]
+        {
+            new { Id = 1 },
+            new { Id = 1, Name = "x" }
+        };
+
+        subject.ShouldBeEquivalentTo(expected, new EquivalencyOptions { IgnoreOrder = true });
+    }
+
+    [Fact]
     public void ShouldPassWhenDifferingMemberIsIgnored()
     {
         var subject = new FakeObject { Id = 1, Name = "One" };
