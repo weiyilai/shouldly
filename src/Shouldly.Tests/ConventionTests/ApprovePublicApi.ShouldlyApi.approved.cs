@@ -44,6 +44,8 @@ namespace Shouldly
     public class EquivalencyOptions
     {
         public EquivalencyOptions() { }
+        public bool IgnoreOrder { get; set; }
+        public System.Collections.Generic.ICollection<string> MembersToIgnore { get; }
     }
     public enum EscapeStyle
     {

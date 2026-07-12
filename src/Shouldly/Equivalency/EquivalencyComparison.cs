@@ -94,18 +94,17 @@ internal sealed class EquivalencyComparison
         if (actual is not ValueType && expected is not ValueType && !_visitedPairs.Add(new(actual, expected)))
             return;
 
-        var members = shape.Members;
-        if (members.Count == 0)
-        {
-            AddDifference(EquivalencyDifferenceKind.VacuousComparison, path, expected, actual, GetDisplayName(shape.Type));
-            return;
-        }
-
         var actualType = actual.GetType();
         var actualShape = actualType == shape.Type ? shape : _shapes.GetShape(actualType);
 
-        foreach (var member in members)
+        var comparedAny = false;
+        foreach (var member in shape.Members)
         {
+            if (_options.MembersToIgnore.Contains(member.Name))
+                continue;
+
+            comparedAny = true;
+
             var memberPath = Append(path, member.Name);
             var actualMember = actualShape.FindMember(member.Name);
             if (actualMember is null)
@@ -116,6 +115,9 @@ internal sealed class EquivalencyComparison
 
             CompareNodes(actualMember.GetValue(actual), member.GetValue(expected), member.DeclaredType, memberPath);
         }
+
+        if (!comparedAny)
+            AddDifference(EquivalencyDifferenceKind.VacuousComparison, path, expected, actual, GetDisplayName(shape.Type));
     }
 
     private void CompareSequences(object actual, object expected, Type? elementType, List<string> path)
@@ -123,6 +125,12 @@ internal sealed class EquivalencyComparison
         if (expected is Array { Rank: > 1 } || actual is Array { Rank: > 1 })
         {
             CompareMultidimensionalArrays(actual, expected, elementType, path);
+            return;
+        }
+
+        if (_options.IgnoreOrder)
+        {
+            CompareUnordered(actual, expected, elementType, path);
             return;
         }
 
