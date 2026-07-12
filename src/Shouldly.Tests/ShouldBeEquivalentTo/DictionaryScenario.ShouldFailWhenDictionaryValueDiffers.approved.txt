@@ -1,10 +1,11 @@
 Comparing object equivalence, at path:
-subject [System.Int32]
+subject [System.Collections.Generic.Dictionary<System.String, System.Int32>]
+    ["b"] [System.Int32]
 
     Expected value to be
-5
+3
     but was
-"Hello"
+2
 
 Additional Info:
     Some additional context

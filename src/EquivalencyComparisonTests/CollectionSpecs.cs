@@ -51,10 +51,8 @@ public class CollectionSpecs
     [Fact]
     public void Array_vs_list_with_identical_elements()
     {
-        Compare.Run<object>(new[] { 1, 2, 3 }, new List<int> { 1, 2, 3 }).ShouldDiverge(
-            shouldly: Outcome.Fail,
-            fluentAssertions: Outcome.Pass,
-            because: "FluentAssertions ignores the container type of collections; Shouldly requires identical runtime types");
+        // Both ignore the container type of collections; only the elements matter.
+        Compare.Run<object>(new[] { 1, 2, 3 }, new List<int> { 1, 2, 3 }).ShouldAgree(Outcome.Pass);
     }
 
     [Fact]
@@ -63,10 +61,8 @@ public class CollectionSpecs
         var actual = new HashSet<int> { 1, 2, 3 };
         var expected = new HashSet<int> { 3, 2, 1 };
 
-        Compare.Run(actual, expected).ShouldDiverge(
-            shouldly: Outcome.Fail,
-            fluentAssertions: Outcome.Pass,
-            because: "sets have no defined order; Shouldly compares them in enumeration order, which reflects insertion history");
+        // Sets have no defined order; both compare them order-insensitively.
+        Compare.Run(actual, expected).ShouldAgree(Outcome.Pass);
     }
 
     [Fact]
@@ -88,10 +84,8 @@ public class CollectionSpecs
         var actual = new int[2, 3] { { 1, 2, 3 }, { 4, 5, 6 } };
         var expected = new int[3, 2] { { 1, 2 }, { 3, 4 }, { 5, 6 } };
 
-        Compare.Run<object>(actual, expected).ShouldDiverge(
-            shouldly: Outcome.Pass,
-            fluentAssertions: Outcome.Fail,
-            because: "Shouldly flattens any IEnumerable, losing array shape; FluentAssertions checks rank and per-dimension lengths");
+        // Both check rank and per-dimension lengths.
+        Compare.Run<object>(actual, expected).ShouldAgree(Outcome.Fail);
     }
 
     [Fact]

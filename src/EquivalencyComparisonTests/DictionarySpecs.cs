@@ -4,10 +4,8 @@ namespace EquivalencyComparisonTests;
 
 /// <summary>
 /// Dictionary comparison semantics, mirroring FluentAssertions.Equivalency.Specs/DictionarySpecs.
-/// FluentAssertions matches dictionaries by key; Shouldly enumerates them as sequences of
-/// KeyValuePair structs, which makes it sensitive to insertion order and — because KeyValuePair
-/// is a value type compared via Equals — unable to see into reference-typed values (shouldly#767,
-/// shouldly#1077).
+/// Both libraries match dictionaries by key, insertion-order-insensitively, and recurse into
+/// values (cf. shouldly#767, shouldly#1077 for the historical failures this design fixed).
 /// </summary>
 public class DictionarySpecs
 {
@@ -26,10 +24,8 @@ public class DictionarySpecs
         var actual = new Dictionary<string, int> { ["a"] = 1, ["b"] = 2 };
         var expected = new Dictionary<string, int> { ["b"] = 2, ["a"] = 1 };
 
-        Compare.Run(actual, expected).ShouldDiverge(
-            shouldly: Outcome.Fail,
-            fluentAssertions: Outcome.Pass,
-            because: "FluentAssertions matches dictionaries by key; Shouldly compares them as ordered sequences of pairs");
+        // Both match dictionaries by key, so insertion order is irrelevant.
+        Compare.Run(actual, expected).ShouldAgree(Outcome.Pass);
     }
 
     [Fact]
@@ -56,10 +52,8 @@ public class DictionarySpecs
         var actual = new Dictionary<string, Person> { ["a"] = new() { Name = "John", Age = 30 } };
         var expected = new Dictionary<string, Person> { ["a"] = new() { Name = "John", Age = 30 } };
 
-        Compare.Run(actual, expected).ShouldDiverge(
-            shouldly: Outcome.Fail,
-            fluentAssertions: Outcome.Pass,
-            because: "Shouldly compares KeyValuePair structs with Equals, which reference-compares the Person values instead of recursing into them (shouldly#1077)");
+        // Both recurse into dictionary values (shouldly#1077).
+        Compare.Run(actual, expected).ShouldAgree(Outcome.Pass);
     }
 
     [Fact]
@@ -68,9 +62,7 @@ public class DictionarySpecs
         var actual = new Dictionary<string, List<int>> { ["a"] = [1, 2] };
         var expected = new Dictionary<string, List<int>> { ["a"] = [1, 2] };
 
-        Compare.Run(actual, expected).ShouldDiverge(
-            shouldly: Outcome.Fail,
-            fluentAssertions: Outcome.Pass,
-            because: "Shouldly compares KeyValuePair structs with Equals, which reference-compares the List values instead of recursing into them (shouldly#767)");
+        // Both recurse into dictionary values, including collection values (shouldly#767).
+        Compare.Run(actual, expected).ShouldAgree(Outcome.Pass);
     }
 }

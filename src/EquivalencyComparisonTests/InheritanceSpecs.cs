@@ -4,8 +4,8 @@ namespace EquivalencyComparisonTests;
 
 /// <summary>
 /// Declared-type vs runtime-type semantics, mirroring FluentAssertions.Equivalency.Specs and
-/// the subject of shouldly#1094: FluentAssertions selects members from the declared
-/// (compile-time) type by default; Shouldly always reflects over the runtime type.
+/// the subject of shouldly#1094: both libraries select members from the declared
+/// (compile-time) type of a member by default.
 /// </summary>
 public class InheritanceSpecs
 {
@@ -38,6 +38,6 @@ public class InheritanceSpecs
         Compare.Run(actual, expected).ShouldDiverge(
             shouldly: Outcome.Fail,
             fluentAssertions: Outcome.Pass,
-            because: "the static type Animal drives FluentAssertions' member selection at the root; Shouldly reflects over the runtime type Dog");
+            because: "the static type Animal drives FluentAssertions' member selection at the root; Shouldly's object-typed API cannot see the static type, so the root falls back to the expectation's runtime type Dog");
     }
 }

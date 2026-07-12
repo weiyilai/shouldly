@@ -13,27 +13,25 @@ suite doubles as a progress metric for FluentAssertions convergence.
 
 ## Verified divergences (Shouldly 5.0-preview vs FluentAssertions 7.2 defaults)
 
-| Scenario | Shouldly | FluentAssertions |
-| --- | --- | --- |
-| Different types, identical shape (incl. anonymous-type expectations) | Fail — requires identical runtime types | Pass — structural, by the expectation's members |
-| Expectation with a subset of the subject's members | Fail | Pass — extra subject members are ignored |
-| Lists/sets with same elements, different order | Fail — ordered element-by-element | Pass — order-insensitive by default (byte arrays excepted) |
-| Array vs `List<T>` with identical elements | Fail — container types must match | Pass — container type ignored |
-| Dictionaries with same pairs, different insertion order | Fail — compared as ordered pair sequences | Pass — matched by key |
-| Dictionaries with reference-typed or collection values (equal, distinct instances) | Fail — `KeyValuePair` struct compared via `Equals`, so values are reference-compared (shouldly#767, shouldly#1077) | Pass — recurses into values |
-| Member declared as base type holding derived instances with differing derived-only members | Fail — reflects over runtime type | Pass — member selection uses the declared type (cf. shouldly#1094) |
-| Class overriding `Equals`: equal by members, unequal by `Equals` (or vice versa) | Compares members, ignores `Equals` | Honors the `Equals` override (value semantics) |
-| Different enum types with the same underlying value | Fail — types must match | Pass — enums compared by value |
-| `int 1` vs `long 1` | Fail — types must match | Pass — numeric types compared by value |
-| Types with indexers | **Error** — `NotSupportedException` | Pass — indexers skipped |
-| `Type`-valued members with different values | **Error** — walks `System.Type`'s reflection properties (shouldly#1050) | Fail cleanly — `Type` treated as a value |
-| Cyclic object graphs, identical shape | Pass — tracks visited pairs | Fail — cycles rejected by default |
-| Object graphs deeper than 10 levels | Pass — unbounded recursion | Fail — 10-level depth cap by default |
-| Multidimensional arrays, same flat content, different shape | Pass — flattens all `IEnumerable`s | Fail — checks rank and dimension lengths |
-| Two `new object()`s (no members) | Pass — vacuously equivalent | **Error** — "no members" `InvalidOperationException` |
+Every remaining divergence is deliberate; the rationale is recorded in the roadmap
+(shouldly#1265) and pinned by a `ShouldDiverge` test.
 
-Everywhere else tested — same-type member comparison, nested graphs, strings (ordinal,
-case-sensitive), public fields, private member exclusion, structs, records, `DateTime`
-(tick-exact, `Kind`-insensitive), `DateTimeOffset` (instant), `decimal` scale, `Guid`, NaN,
-nullable lifting, `Uri` (fragment-insensitive via `Uri.Equals`), null handling, duplicate
-multiplicity in collections — the two libraries agree.
+| Scenario | Shouldly | FluentAssertions | Why Shouldly diverges |
+| --- | --- | --- | --- |
+| Lists/arrays with same elements, different order (incl. nested in graphs) | Fail — ordered element-by-element | Pass — order-insensitive by default (byte arrays excepted) | Consistent with `ShouldBe`; respects the collection's contract; precise "element [i]" messages; a strict default fails loudly instead of masking ordering bugs. Opt out with `IgnoreOrder` |
+| Class overriding `Equals`: equal by members, unequal by `Equals` (or vice versa) | Compares members, ignores `Equals` | Honors the `Equals` override (value semantics) | People reach for equivalency precisely to compare structure; `ShouldBe` already honors `Equals`; avoids the false pass where `Equals` hides real data differences |
+| Different enum types with the same underlying value | Fail | Pass — enums compared by value | Two distinct enum types agreeing numerically is usually an accident |
+| Cyclic object graphs, identical shape | Pass — visited pairs tracked by reference | Fail — cycles rejected by default | Strictly more useful; no configuration needed |
+| Object graphs deeper than 10 levels | Pass — unbounded recursion | Fail — 10-level depth cap by default | Safe with correct cycle tracking |
+| Root objects held in base-typed references with differing derived-only members | Fail — the `object`-typed API cannot see the static type, so the root falls back to the expectation's runtime type | Pass — the generic API's static type drives member selection | API-shape consequence, not a semantic choice |
+| Two `new object()`s (no members) | Fail — vacuous-comparison guard with guidance | **Error** — "no members" `InvalidOperationException` | Both refuse a zero-member comparison; Shouldly fails the assertion with an actionable message instead of throwing |
+
+Everywhere else tested, the two libraries agree — including the scenarios that diverged before
+the v5 rewrite: cross-type and anonymous-type expectations (subset semantics, by the
+expectation's members), declared-type member selection, dictionaries matched by key with
+recursion into values, sets compared order-insensitively, container types ignored
+(array ≡ `List<T>`), lossless cross-numeric equality (`int 1` ≡ `long 1`), multidimensional
+array shape checks, indexers skipped, `Type`/`Uri` as leaf values, strings (ordinal,
+case-sensitive), public fields, private member exclusion, structs and records member-wise,
+`DateTime` (tick-exact, `Kind`-insensitive), `DateTimeOffset` (instant), `decimal` scale,
+`Guid`, NaN, nullable lifting, null handling, and duplicate multiplicity in collections.

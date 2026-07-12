@@ -32,10 +32,8 @@ public class BasicSpecs
         var actual = new Person { Name = "John", Age = 30 };
         var expected = new Customer { Name = "John", Age = 30 };
 
-        Compare.Run<object>(actual, expected).ShouldDiverge(
-            shouldly: Outcome.Fail,
-            fluentAssertions: Outcome.Pass,
-            because: "Shouldly requires identical runtime types; FluentAssertions compares structurally by the expectation's members");
+        // Both compare structurally by the expectation's members; runtime type identity is not required.
+        Compare.Run<object>(actual, expected).ShouldAgree(Outcome.Pass);
     }
 
     [Fact]
@@ -44,10 +42,7 @@ public class BasicSpecs
         var actual = new Person { Name = "John", Age = 30 };
         var expected = new { Name = "John", Age = 30 };
 
-        Compare.Run<object>(actual, expected).ShouldDiverge(
-            shouldly: Outcome.Fail,
-            fluentAssertions: Outcome.Pass,
-            because: "FluentAssertions supports anonymous-type expectations (structural typing); Shouldly requires identical runtime types");
+        Compare.Run<object>(actual, expected).ShouldAgree(Outcome.Pass);
     }
 
     [Fact]
@@ -56,10 +51,8 @@ public class BasicSpecs
         var actual = new Person { Name = "John", Age = 30 };
         var expected = new { Name = "John" };
 
-        Compare.Run<object>(actual, expected).ShouldDiverge(
-            shouldly: Outcome.Fail,
-            fluentAssertions: Outcome.Pass,
-            because: "FluentAssertions only compares members present on the expectation, enabling partial matching; Shouldly has no equivalent capability");
+        // Subset semantics: only members present on the expectation are compared.
+        Compare.Run<object>(actual, expected).ShouldAgree(Outcome.Pass);
     }
 
     [Fact]
@@ -139,10 +132,8 @@ public class BasicSpecs
         var actual = new IndexerHolder { Name = "same" };
         var expected = new IndexerHolder { Name = "same" };
 
-        Compare.Run(actual, expected).ShouldDiverge(
-            shouldly: Outcome.Error,
-            fluentAssertions: Outcome.Pass,
-            because: "Shouldly throws NotSupportedException for any type with an indexer; FluentAssertions skips indexers");
+        // Both skip indexers (there is no general way to enumerate their values).
+        Compare.Run(actual, expected).ShouldAgree(Outcome.Pass);
     }
 
     [Fact]

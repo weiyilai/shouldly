@@ -1,10 +1,11 @@
 Comparing object equivalence, at path:
-subject [System.Int32]
+subject [Shouldly.Tests.ShouldBeEquivalentTo.TypeScenario+TypeHolder]
+    Type [System.Type]
 
     Expected value to be
-5
+System.String
     but was
-"Hello"
+System.Int32
 
 Additional Info:
     Some additional context

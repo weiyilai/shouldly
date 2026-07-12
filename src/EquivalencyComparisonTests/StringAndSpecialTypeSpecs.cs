@@ -27,8 +27,8 @@ public class StringSpecs
 }
 
 /// <summary>
-/// Types both libraries treat as comparison leaves rather than walking their members —
-/// or fail to (see shouldly#1050 for Type, shouldly#1205 for Uri).
+/// Types both libraries treat as comparison leaves rather than walking their members
+/// (cf. shouldly#1050 for Type, shouldly#1205 for Uri).
 /// </summary>
 public class SpecialTypeSpecs
 {
@@ -66,9 +66,7 @@ public class SpecialTypeSpecs
         var actual = new TypeHolder { Type = typeof(string) };
         var expected = new TypeHolder { Type = typeof(int) };
 
-        // Since shouldly#1094 the member is walked as its declared type System.Type, which no
-        // longer blows up (shouldly#1050) but still compares Type's properties rather than
-        // treating it as a leaf value the way FluentAssertions does.
+        // Both treat Type as a leaf value compared with Equals (shouldly#1050).
         Compare.Run(actual, expected).ShouldAgree(Outcome.Fail);
     }
 
@@ -76,8 +74,8 @@ public class SpecialTypeSpecs
     public void Objects_with_no_members()
     {
         Compare.Run(new object(), new object()).ShouldDiverge(
-            shouldly: Outcome.Pass,
+            shouldly: Outcome.Fail,
             fluentAssertions: Outcome.Error,
-            because: "Shouldly treats a memberless object as vacuously equivalent; FluentAssertions throws because comparing objects without members is probably a mistake");
+            because: "both refuse to compare zero members, differently: Shouldly's vacuous-comparison guard fails the assertion with guidance; FluentAssertions throws an InvalidOperationException");
     }
 }

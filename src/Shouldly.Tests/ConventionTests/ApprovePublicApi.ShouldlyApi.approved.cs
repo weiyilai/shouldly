@@ -144,13 +144,7 @@ namespace Shouldly
     [Shouldly.ShouldlyMethods]
     public static class ObjectGraphTestExtensions
     {
-        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode("Walks the actual/expected object graph using reflection over each runtime type\'s " +
-            "public fields and properties. The trimmer cannot statically determine which memb" +
-            "ers are read.")]
         public static void ShouldBeEquivalentTo([System.Diagnostics.CodeAnalysis.NotNullIfNotNull("expected")] this object? actual, [System.Diagnostics.CodeAnalysis.NotNullIfNotNull("actual")] object? expected, string? customMessage = null, [System.Runtime.CompilerServices.CallerArgumentExpression("actual")] string? actualExpression = null) { }
-        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode("Walks the actual/expected object graph using reflection over each runtime type\'s " +
-            "public fields and properties. The trimmer cannot statically determine which memb" +
-            "ers are read.")]
         public static void ShouldBeEquivalentTo([System.Diagnostics.CodeAnalysis.NotNullIfNotNull("expected")] this object? actual, [System.Diagnostics.CodeAnalysis.NotNullIfNotNull("actual")] object? expected, Shouldly.EquivalencyOptions options, string? customMessage = null, [System.Runtime.CompilerServices.CallerArgumentExpression("actual")] string? actualExpression = null) { }
     }
     [Shouldly.ShouldlyMethods]

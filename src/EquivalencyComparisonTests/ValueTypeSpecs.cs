@@ -35,10 +35,8 @@ public class ValueTypeSpecs
     [Fact]
     public void Int_vs_long_with_the_same_numeric_value()
     {
-        Compare.Run<object>(1, 1L).ShouldDiverge(
-            shouldly: Outcome.Fail,
-            fluentAssertions: Outcome.Pass,
-            because: "FluentAssertions treats numeric types of the same value as equivalent; Shouldly requires identical runtime types");
+        // Both treat numeric types holding the same value as equivalent (lossless cross-numeric equality).
+        Compare.Run<object>(1, 1L).ShouldAgree(Outcome.Pass);
     }
 
     [Fact]
