@@ -1,13 +1,11 @@
 Comparing object equivalence, at path:
 subject [Shouldly.Tests.ShouldBeEquivalentTo.FakeObject]
-    Child [Shouldly.Tests.ShouldBeEquivalentTo.FakeObject]
-        Adjectives [System.Collections.IEnumerable]
-            Element [0] [System.String]
+    Id [System.Int32]
 
     Expected value to be
-"beautiful"
+2
     but was
-"ugly"
+1
 
 Additional Info:
     Some additional context

@@ -79,6 +79,12 @@ public class ShouldlyAssertionContext : IShouldlyAssertionContext
     public IEnumerable<string>? Path { get; set; }
 
     /// <summary>
+    /// The differences collected by an equivalency comparison, when this context belongs to a
+    /// ShouldBeEquivalentTo failure.
+    /// </summary>
+    internal IReadOnlyList<Equivalency.EquivalencyDifference>? EquivalencyDifferences { get; set; }
+
+    /// <summary>
     /// Initializes a new instance of the ShouldlyAssertionContext class
     /// </summary>
     /// <param name="shouldlyMethod">The name of the should method being called</param>

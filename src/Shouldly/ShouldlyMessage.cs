@@ -202,6 +202,18 @@ public class ExpectedEquivalenceShouldlyMessage : ShouldlyMessage
         };
         if (customMessage != null) ShouldlyAssertionContext.CustomMessage = customMessage;
     }
+
+    /// <summary>
+    /// Creates a new message from the differences collected by an equivalency comparison.
+    /// </summary>
+    internal ExpectedEquivalenceShouldlyMessage(IReadOnlyList<Equivalency.EquivalencyDifference> differences, object? expected, object? actual, string? customMessage, string shouldlyMethod, string? actualExpression)
+    {
+        ShouldlyAssertionContext = new ShouldlyAssertionContext(shouldlyMethod, expected, actual, actualExpression: actualExpression)
+        {
+            EquivalencyDifferences = differences
+        };
+        if (customMessage != null) ShouldlyAssertionContext.CustomMessage = customMessage;
+    }
 }
 
 /// <summary>

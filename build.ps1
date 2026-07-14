@@ -46,7 +46,10 @@ if (Test-Path $testResultsDir) {
 }
 
 # Define test projects
-$testProjects = @("src/Shouldly.Tests/Shouldly.Tests.csproj")
+$testProjects = @(
+    "src/Shouldly.Tests/Shouldly.Tests.csproj"
+    "src/EquivalencyComparisonTests/EquivalencyComparisonTests.csproj"
+)
 
 # Add DocumentationExamples project only on Windows
 if ($IsWindows) {
