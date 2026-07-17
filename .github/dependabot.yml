@@ -23,3 +23,6 @@ updates:
   - dependency-name: Microsoft.NET.Test.Sdk
     versions:
     - 16.9.1
+  - dependency-name: FluentAssertions
+    update-types:
+    - all
