@@ -163,6 +163,8 @@ namespace Shouldly
         public static void NotThrow(System.Threading.Tasks.Task action, string? customMessage = null, [System.Runtime.CompilerServices.CallerArgumentExpression("action")] string? actualExpression = null) { }
         public static void NotThrow(System.Func<System.Threading.Tasks.Task> action, System.TimeSpan timeoutAfter, string? customMessage = null, [System.Runtime.CompilerServices.CallerArgumentExpression("action")] string? actualExpression = null) { }
         public static void NotThrow(System.Threading.Tasks.Task action, System.TimeSpan timeoutAfter, string? customMessage = null, [System.Runtime.CompilerServices.CallerArgumentExpression("action")] string? actualExpression = null) { }
+        public static void NotThrow<TException>(System.Action action, string? customMessage = null, [System.Runtime.CompilerServices.CallerArgumentExpression("action")] string? actualExpression = null)
+            where TException : System.Exception { }
         public static T NotThrow<T>(System.Func<System.Threading.Tasks.Task<T>> action, string? customMessage = null, [System.Runtime.CompilerServices.CallerArgumentExpression("action")] string? actualExpression = null) { }
         public static T NotThrow<T>(System.Func<T> action, string? customMessage = null, [System.Runtime.CompilerServices.CallerArgumentExpression("action")] string? actualExpression = null) { }
         public static T NotThrow<T>(System.Threading.Tasks.Task<T> action, string? customMessage = null, [System.Runtime.CompilerServices.CallerArgumentExpression("action")] string? actualExpression = null) { }
@@ -484,6 +486,8 @@ namespace Shouldly
     public static class ShouldThrowExtensions
     {
         public static void ShouldNotThrow(this System.Action action, string? customMessage = null, [System.Runtime.CompilerServices.CallerArgumentExpression("action")] string? actualExpression = null) { }
+        public static void ShouldNotThrow<TException>(this System.Action action, string? customMessage = null, [System.Runtime.CompilerServices.CallerArgumentExpression("action")] string? actualExpression = null)
+            where TException : System.Exception { }
         public static T ShouldNotThrow<T>(this System.Func<T> action, string? customMessage = null, [System.Runtime.CompilerServices.CallerArgumentExpression("action")] string? actualExpression = null) { }
         public static System.Exception ShouldThrow(this System.Action actual, System.Type exceptionType, string? customMessage = null, [System.Runtime.CompilerServices.CallerArgumentExpression("actual")] string? actualExpression = null) { }
         public static System.Exception ShouldThrow(this System.Func<object?> actual, System.Type exceptionType, string? customMessage = null, [System.Runtime.CompilerServices.CallerArgumentExpression("actual")] string? actualExpression = null) { }

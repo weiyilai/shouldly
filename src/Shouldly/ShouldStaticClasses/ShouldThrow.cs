@@ -173,10 +173,12 @@ public static partial class Should
 
     /// <summary>
     /// Verifies that the provided action does not throw an exception of type <typeparamref name="TException"/>.
+    /// Exceptions of other types are not caught and will propagate to the caller.
     /// </summary>
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    public static void NotThrow<TException>([InstantHandle] Action action, string? customMessage = null) where TException : Exception =>
-        NotThrowInternal<TException>(action, customMessage);
+    public static void NotThrow<TException>([InstantHandle] Action action, string? customMessage = null,
+        [CallerArgumentExpression(nameof(action))] string? actualExpression = null)
+        where TException : Exception =>
+        NotThrowInternal<TException>(action, customMessage, actualExpression: actualExpression);
 
     /// <summary>
     /// Used to differentiate between the extension methods and the static methods
@@ -197,26 +199,20 @@ public static partial class Should
         }
     }
 
-    /// <summary>
-    /// Verifies that the provided action does not throw an exception of type <typeparamref name="TException"/>.
-    /// </summary>
-    /// <remarks>
-    /// Used to differentiate between the extension methods and the static methods
-    /// </remarks>
+    [DebuggerDisableUserUnhandledExceptions]
     internal static void NotThrowInternal<TException>([InstantHandle] Action action, string? customMessage,
-        [CallerMemberName] string shouldlyMethod = null!)
+        [CallerMemberName] string shouldlyMethod = null!,
+        string? actualExpression = null)
         where TException : Exception
     {
+        actualExpression = actualExpression.NormalizeDelegateExpression();
         try
         {
             action();
         }
-        catch (TException ex){
-            throw new ShouldAssertException(new ShouldlyThrowMessage(ex.GetType(), ex.Message, customMessage, shouldlyMethod).ToString());
-        }
-        catch (Exception)
+        catch (TException ex)
         {
-            // ignored
+            throw new ShouldAssertException(new ShouldlyThrowMessage(typeof(TException), ex, customMessage, shouldlyMethod, actualExpression).ToString(), ex);
         }
     }
 }
