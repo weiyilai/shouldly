@@ -172,6 +172,15 @@ public static partial class Should
         NotThrowInternal(action, customMessage, actualExpression: actualExpression);
 
     /// <summary>
+    /// Verifies that the provided action does not throw an exception of type <typeparamref name="TException"/>.
+    /// Exceptions of other types are not caught and will propagate to the caller.
+    /// </summary>
+    public static void NotThrow<TException>([InstantHandle] Action action, string? customMessage = null,
+        [CallerArgumentExpression(nameof(action))] string? actualExpression = null)
+        where TException : Exception =>
+        NotThrowInternal<TException>(action, customMessage, actualExpression: actualExpression);
+
+    /// <summary>
     /// Used to differentiate between the extension methods and the static methods
     /// </summary>
     [DebuggerDisableUserUnhandledExceptions]
@@ -187,6 +196,23 @@ public static partial class Should
         catch (Exception ex)
         {
             throw new ShouldAssertException(new ShouldlyThrowMessage(ex.GetType(), exceptionMessage: ex.Message, customMessage, shouldlyMethod, actualExpression).ToString());
+        }
+    }
+
+    [DebuggerDisableUserUnhandledExceptions]
+    internal static void NotThrowInternal<TException>([InstantHandle] Action action, string? customMessage,
+        [CallerMemberName] string shouldlyMethod = null!,
+        string? actualExpression = null)
+        where TException : Exception
+    {
+        actualExpression = actualExpression.NormalizeDelegateExpression();
+        try
+        {
+            action();
+        }
+        catch (TException ex)
+        {
+            throw new ShouldAssertException(new ShouldlyThrowMessage(typeof(TException), ex, customMessage, shouldlyMethod, actualExpression).ToString(), ex);
         }
     }
 }
