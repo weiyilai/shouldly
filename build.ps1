@@ -49,15 +49,8 @@ if (Test-Path $testResultsDir) {
 $testProjects = @(
     "src/Shouldly.Tests/Shouldly.Tests.csproj"
     "src/EquivalencyComparisonTests/EquivalencyComparisonTests.csproj"
+    "src/DocumentationExamples/DocumentationExamples.csproj"
 )
-
-# Add DocumentationExamples project only on Windows
-if ($IsWindows) {
-    $testProjects += "src/DocumentationExamples/DocumentationExamples.csproj"
-    Write-Host "Running on Windows. Including DocumentationExamples project." -ForegroundColor Cyan
-} else {
-    Write-Host "Not running on Windows. Skipping DocumentationExamples project." -ForegroundColor Yellow
-}
 
 # Run tests for each project
 foreach ($project in $testProjects) {

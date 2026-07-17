@@ -6,9 +6,11 @@ namespace Shouldly.Tests.ShouldMatchApproved;
 
 public class ShouldMatchApprovedScenarios
 {
+    // Anchors on the repo-relative `src/Shouldly.Tests` suffix so the checkout can live
+    // anywhere (e.g. /tmp, a worktree, or a folder not named "shouldly").
     private readonly Func<string, string> _scrubber = v => RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-        ? Regex.Replace(v, @"\w:.+?shouldly(?:\\[^\\]+)*?\\src", "C:\\PathToCode\\shouldly\\src")
-        : Regex.Replace(v, @"\/([U,u]sers|[H,h]ome).+?shouldly(?:\/[^\/]+)*?\/src", "/PathToCode/shouldly/src");
+        ? Regex.Replace(v, @"\w:.+?\\src\\Shouldly\.Tests", @"C:\PathToCode\shouldly\src\Shouldly.Tests")
+        : Regex.Replace(v, @"/[^""\r\n]+?/src/Shouldly\.Tests", "/PathToCode/shouldly/src/Shouldly.Tests");
 
     [Fact]
     public void Simple()
