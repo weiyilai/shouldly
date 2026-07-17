@@ -107,6 +107,7 @@ namespace Shouldly
     public static class GuidShouldBeTestExtensions
     {
         public static void ShouldBeEmpty(this System.Guid actual, string? customMessage = null, [System.Runtime.CompilerServices.CallerArgumentExpression("actual")] string? actualExpression = null) { }
+        public static void ShouldNotBeEmpty(this System.Guid actual, string? customMessage = null, [System.Runtime.CompilerServices.CallerArgumentExpression("actual")] string? actualExpression = null) { }
     }
     public interface IDiffViewer
     {
