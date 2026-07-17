@@ -84,8 +84,9 @@ public static partial class ShouldBeEnumerableTestExtensions
         [CallerArgumentExpression(nameof(actual))] string? actualExpression = null)
     {
         var condition = elementPredicate.Compile();
-        if (actual.Any(condition))
-            throw new ShouldAssertException(new ExpectedActualShouldlyMessage(elementPredicate.Body, actual, customMessage, actualExpression: actualExpression).ToString());
+        var matchingElements = actual.Where(condition).ToList();
+        if (matchingElements.Count > 0)
+            throw new ShouldAssertException(new ActualFilteredWithPredicateShouldlyMessage(elementPredicate.Body, matchingElements, actual, customMessage, actualExpression: actualExpression).ToString());
     }
 
     /// <summary>

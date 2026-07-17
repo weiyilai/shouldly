@@ -1,8 +1,8 @@
-arr
+testResults
     should not contain an element satisfying the condition
-(i < capturedOuterVar)
+result.Contains("error")
     but
-[1, 2, 3]
+["error: file not found", "error: timeout"]
     do
 
 Additional Info:
